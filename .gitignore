@@ -1,0 +1,15 @@
+# Environments
+venv/
+.venv/
+env/
+
+# API Keys / Secrets
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Database
+*.sqlite3
+*.db
