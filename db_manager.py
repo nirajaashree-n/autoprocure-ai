@@ -83,3 +83,11 @@ def fetch_data_by_keyword(keyword, search_type="item"):
 
 if __name__ == "__main__":
     init_db()
+
+    # Test saving a fake quote
+    add_vendor_and_quote("Test Vendor", "test@v.com", "Laptops", 50000, "Good deal", 0.95, "http://link.com")
+    print("Data Saved")
+    
+    # Test fetching data
+    results = fetch_data_by_keyword("Laptops", "item")
+    print(f"Fetch Result: {results}")
