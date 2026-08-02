@@ -80,6 +80,15 @@ def fetch_data_by_keyword(keyword, search_type="item"):
     conn.close()
     return rows
 
+def get_vendors_for_item(item_keyword):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    # Find unique vendors who have supplied this item in the past
+    query = "SELECT DISTINCT vendor_name, vendor_email FROM quotes WHERE item LIKE ?"
+    cursor.execute(query, (f'%{item_keyword}%',))
+    vendors = cursor.fetchall()
+    conn.close()
+    return vendors # Returns a list of tuples: [('Dell', 'sales@dell.com'), ('HP', 'contact@hp.com')]
 
 if __name__ == "__main__":
     init_db()
