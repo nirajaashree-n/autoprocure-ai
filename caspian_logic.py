@@ -1,33 +1,22 @@
-import os
-from caspian import Caspian
 
-# Initialize Caspian
-caspian_client = Caspian(api_key=os.getenv("CASPIAN_API_KEY"))
+# This file is JUST a layout designer.
+def generate_comparison_table(all_quotes):
+    if not all_quotes:
+        return "No quotes found for comparison."
 
-def extract_procurement_details(user_text):
-    """Uses Caspian to turn Slack text into structured data."""
-    prompt = f"Identify the product and quantity from this request: '{user_text}'. Return as JSON."
-    return caspian_client.generate(prompt=prompt)
-
-def generate_comparison_blocks(vendor_quotes):
-    """Formats a list of quotes into Slack Block Kit format."""
-    blocks = [
-        {"type": "header", "text": {"type": "plain_text", "text": "Vendor Quote Comparison"}},
-        {"type": "divider"}
-    ]
+    header = "*Current Quotes Comparison Summary*\n"
+    table = "```\n"
+    table += f"{'VENDOR':<15} | {'PRODUCT':<15} | {'PRICE':<10}\n"
+    table += "-" * 45 + "\n"
     
-    for quote in vendor_quotes:
-        blocks.append({
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": f"*Vendor:* {quote['name']}\n*Price:* {quote['price']}\n*ETA:* {quote['eta']}"
-            },
-            "accessory": {
-                "type": "button",
-                "text": {"type": "plain_text", "text": "Select"},
-                "value": quote['name'],
-                "action_id": "select_vendor"
-            }
-        })
-    return blocks
+    for q in all_quotes:
+        # Tuple mapping from our new DB query:
+        # q[1] = Name, q[3] = Item, q[4] = Price
+        v = str(q[1])[:15]
+        i = str(q[3])[:15]
+        p = str(q[4])
+        table += f"{v:<15} | {i:<15} | ${p:<10}\n"
+    
+    table += "```"
+    return header + table
+
