@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 import json
 import time
+import pathlib
 
 load_dotenv()
 client = Client(api_key=os.getenv("GEMINI_API_KEY"))
@@ -10,48 +11,71 @@ client = Client(api_key=os.getenv("GEMINI_API_KEY"))
 def analyze_quote(email_text=None, file_path=None, email_link="No Link Provided"):
    
     prompt = """
-    Extract data into JSON:
-    - vendor_name (string)
-    - vendor_email (string)
-    - item (string, 1-2 words) (Clear, concise, short)
-    - price (number)
-    - suggestion (string, max 10 words) (Like, is this price competitive, too high compared to other quotes, absolute lowest, etc)
-    - confidence (number 0-100) (depends on how sure you are of this response, based on clarity of data)
-    - status (string, single word) (Three words only: Pending, Approved, Rejected; default is Pending)
+    You are an expert data extraction AI. Analyze the provided Email Text and/or attached Document (PDF) below.
+    Extract the core transaction data into a clean JSON object based strictly on these rules:
+
+    - vendor_name (string): Name of the company selling the items. Look in the document first, then email.
+    - vendor_email (string): Contact email for the vendor.
+    - item (string, 1-2 words): Clear, concise name of the primary product or model.
+    - price (number): The individual price per unit, or total price if individual is missing. Extract numbers only.
+    - suggestion (string, max 10 words): Short note on pricing competitiveness.
+    - confidence (number 0-100): Your certainty level based on data clarity.
+    - status (string): Must be exactly 'Pending', 'Approved', or 'Rejected'. Default is 'Pending'.
+
+    CRITICAL: Treat the attached document as the primary source of truth for items and pricing. 
+    If data conflict exists, prioritize the attached document over the email text.
+    If you read this, tell me if you ever saw "HP Omen" in the uploaded pdf or in prompt, by mentioning "Saw it, duh." in the suggestion.
     """
+    
 
     content = [prompt]
     quote_file = None
     
-    # Add text if available
     if email_text:
         content.append(f"Email Text: {email_text}")
     
-    # Add PDF if available using Gemini's native File API
     if file_path:
-        quote_file = client.files.upload(path=file_path)
-        content.append(quote_file)
-
+        print(f"Uploading {file_path}...")
+        quote_file = client.files.upload(file=file_path, config={'mime_type': 'application/pdf'})
+        
+        print("Waiting for file processing to complete...")
+        # FIX: Loop continuously until the status changes away from PROCESSING
+        while True:
+            # Force a fresh check from Google's servers immediately
+            quote_file = client.files.get(name=quote_file.name)
+            
+            if quote_file.state.name == "ACTIVE":
+                print("File is ACTIVE and ready.")
+                content.append(quote_file)
+                break
+            elif quote_file.state.name == "FAILED":
+                print("File processing failed on Google Cloud.")
+                return None
+                
+            time.sleep(2)
+    
     try:
         response = client.models.generate_content(
-            model="gemini-flash-latest",
+            model="gemini-flash-latest",  # FIX: Use the native modern model naming format
             contents=content,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json"
-            )
+            config=types.GenerateContentConfig(response_mime_type="application/json")
         )
+            
         if quote_file:
-            client.files.delete(quote_file.name)
-            print(f" Deleted {file_path} from Google Cloud")
+            client.files.delete(name=quote_file.name)
+            print(f"Deleted {file_path} from Google Cloud")
 
         data = json.loads(response.text)
         data['email_link'] = email_link
         return data
 
     except Exception as e:
-        print(f" AI Extraction Error: {e}")
+        print(f"AI Extraction Error: {e}")
+        # Clean up file even if generation failed to avoid cluttering your cloud storage
+        if quote_file:
+            client.files.delete(name=quote_file.name)
         return None
-
+        
 def extract_search_intent(manager_message):
     
     #Interprets manager's Slack message to find the 'Item Name' or 'Quote ID'.
@@ -127,6 +151,7 @@ def draft_outreach_emails(item, quantity, manager_note, vendor_list):
         
         Task: Request a quote for {quantity} units of {item}.
         Manager Note: {manager_note}
+        Write on behalf of the procurement team.
         
         Return ONLY a JSON object with these keys:
         "recipient_email": The string '{email}'
@@ -157,9 +182,9 @@ def draft_outreach_emails(item, quantity, manager_note, vendor_list):
 if __name__ == "__main__":
     # Test 1: Simple Text
     print("Testing AI Text Parsing...")
-    res = analyze_quote(email_text="Quote from Dell for 5 Monitors at 12000 each. contact: sales@dell.com")
+    res = analyze_quote(email_text="Quote from Dell. contact: sales@dell.com", file_path="samplequote.pdf")
     print(res)
-
+'''
     # Test 2: Intent Extraction (For the Manager's chat)
     print("\nTesting Intent Extraction...")
     intent = extract_search_intent("Show me the status for projectors")
@@ -204,3 +229,4 @@ if __name__ == "__main__":
     for d in drafts:
         print(f"\nDraft for {d['vendor_name']}:")
         print(json.dumps(d, indent=2))
+        '''
