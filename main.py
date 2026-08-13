@@ -76,7 +76,24 @@ def coordinate_flow(message, client):
                 v_price = str(quote.get('price', '0.00'))
         except Exception as e:
             print(f"AI Extraction Error (using defaults): {e}")
+        try:
+            client.initiate(
+                connection_id=EMAIL_CONN_ID,
+                recipient=sender_email,
+                text=(
+                    f"Subject: Receipt Acknowledged: Quote for {CURRENT_ITEM}\n\n"
+                    f"Hi,\n\n"
+                    f"Thank you for submitting your quote for {CURRENT_ITEM}. "
+                    f"We have received your pricing and our team is currently reviewing it. "
+                    f"We will get back to you if we decide to move forward.\n\n"
+                    f"Best regards,\nProcurement Team"
+                )
+            )
+            print(f"Sent 'Thank You' email to {sender_email}")
+        except Exception as e:
+            print(f"Failed to send thank you email: {e}")
 
+            
         # 3. Database: Save this specific vendor's quote
         # Using CURRENT_ITEM ensures all vendor responses match the original Slack request
         db_manager.add_vendor_and_quote(
