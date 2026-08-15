@@ -11,7 +11,7 @@ SLACK_CHAT_ID = None
 CURRENT_ITEM = "Requested Item" 
 
 # Add your vendor emails to this list
-VENDORS = ["nityashreeneelakandan@gmail.com", "nirajaashreeneelakandan@gmail.com"]
+VENDORS = ["n.builds.dev@gmail.com", "n.projects.dev@gmail.com"]
 
 def coordinate_flow(message, client):
     """
