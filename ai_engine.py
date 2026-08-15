@@ -10,7 +10,7 @@ client = Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 def analyze_quote(email_text=None, file_path=None, email_link="No Link Provided"):
    
-    prompt = """
+    prompt = '''
     You are an expert data extraction AI. Analyze the provided Email Text and/or attached Document (PDF) below.
     Extract the core transaction data into a clean JSON object based strictly on these rules:
 
@@ -23,9 +23,8 @@ def analyze_quote(email_text=None, file_path=None, email_link="No Link Provided"
     - status (string): Must be exactly 'Pending', 'Approved', or 'Rejected'. Default is 'Pending'.
 
     CRITICAL: Treat the attached document as the primary source of truth for items and pricing. 
-    If data conflict exists, prioritize the attached document over the email text.
-    If you read this, tell me if you ever saw "HP Omen" in the uploaded pdf or in prompt, by mentioning "Saw it, duh." in the suggestion.
-    """
+    If data conflict exists, prioritize the attached document over the email text.'''
+        
     
 
     content = [prompt]
@@ -43,27 +42,7 @@ def analyze_quote(email_text=None, file_path=None, email_link="No Link Provided"
         )
 
     content.append(pdf_part)
-    '''
-    if file_path:
-        print(f"Uploading {file_path}...")
-        quote_file = client.files.upload(file=file_path, config={'mime_type': 'application/pdf'})
-        
-        print("Waiting for file processing to complete...")
-        # FIX: Loop continuously until the status changes away from PROCESSING
-        while True:
-            # Force a fresh check from Google's servers immediately
-            quote_file = client.files.get(name=quote_file.name)
-            
-            if str(quote_file.state) == "FileState.ACTIVE" or quote_file.state.name == "ACTIVE":
-                print("File is ACTIVE and ready.")
-                content.append(quote_file)
-                break
-            elif str(quote_file.state) == "FileState.FAILED" or quote_file.state.name == "FAILED":
-                print("File processing failed on Google Cloud.")
-                return None
-                
-            time.sleep(2)
-    '''
+
     try:
         response = client.models.generate_content(
         model="gemini-3.5-flash",
@@ -195,12 +174,12 @@ def draft_outreach_emails(item, quantity, manager_note, vendor_list):
     return all_drafts
 
 if __name__ == "__main__":
-    # Test 1: Simple Text
+
     print("Testing AI Text Parsing...")
     res = analyze_quote(email_text="Quote from Dell. contact: sales@dell.com",file_path = "testquote.pdf") #file_path = "samplequote.pdf"
     print(res)
+
 '''
-    # Test 2: Intent Extraction (For the Manager's chat)
     print("\nTesting Intent Extraction...")
     intent = extract_search_intent("Show me the status for projectors")
     print(intent)
