@@ -33,7 +33,17 @@ def analyze_quote(email_text=None, file_path=None, email_link="No Link Provided"
     
     if email_text:
         content.append(f"Email Text: {email_text}")
+
+    if file_path:
+        print(f"Reading {file_path}...")
     
+        pdf_part = types.Part.from_bytes(
+        data=open(file_path, "rb").read(),
+        mime_type="application/pdf"
+        )
+
+    content.append(pdf_part)
+    '''
     if file_path:
         print(f"Uploading {file_path}...")
         quote_file = client.files.upload(file=file_path, config={'mime_type': 'application/pdf'})
@@ -53,15 +63,18 @@ def analyze_quote(email_text=None, file_path=None, email_link="No Link Provided"
                 return None
                 
             time.sleep(2)
-    
+    '''
     try:
         response = client.models.generate_content(
-            model="gemini-3.7-flash",  # FIX: Use the native modern model naming format
-            contents=content,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json"
-            )
+        model="gemini-3.5-flash",
+        contents=content,
+        config=types.GenerateContentConfig(
+        response_mime_type="application/json"
         )
+)
+
+        print("GEMINI RESPONSE:")
+        print(repr(response.text))   
             
         if quote_file:
             client.files.delete(name=quote_file.name)
@@ -184,7 +197,7 @@ def draft_outreach_emails(item, quantity, manager_note, vendor_list):
 if __name__ == "__main__":
     # Test 1: Simple Text
     print("Testing AI Text Parsing...")
-    res = analyze_quote(email_text="Quote from Dell. contact: sales@dell.com", file_path="samplequote.pdf")
+    res = analyze_quote(email_text="Quote from Dell. contact: sales@dell.com",file_path = "testquote.pdf") #file_path = "samplequote.pdf"
     print(res)
 '''
     # Test 2: Intent Extraction (For the Manager's chat)
