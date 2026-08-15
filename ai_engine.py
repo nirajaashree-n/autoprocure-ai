@@ -44,11 +44,11 @@ def analyze_quote(email_text=None, file_path=None, email_link="No Link Provided"
             # Force a fresh check from Google's servers immediately
             quote_file = client.files.get(name=quote_file.name)
             
-            if quote_file.state.name == "ACTIVE":
+            if str(quote_file.state) == "FileState.ACTIVE" or quote_file.state.name == "ACTIVE":
                 print("File is ACTIVE and ready.")
                 content.append(quote_file)
                 break
-            elif quote_file.state.name == "FAILED":
+            elif str(quote_file.state) == "FileState.FAILED" or quote_file.state.name == "FAILED":
                 print("File processing failed on Google Cloud.")
                 return None
                 
@@ -56,9 +56,11 @@ def analyze_quote(email_text=None, file_path=None, email_link="No Link Provided"
     
     try:
         response = client.models.generate_content(
-            model="gemini-flash-latest",  # FIX: Use the native modern model naming format
+            model="gemini-3.7-flash",  # FIX: Use the native modern model naming format
             contents=content,
-            config=types.GenerateContentConfig(response_mime_type="application/json")
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json"
+            )
         )
             
         if quote_file:
