@@ -2,11 +2,11 @@ import os
 import time
 from dotenv import load_dotenv
 from caspian_sdk import CommClient
-import main  # Import the controller
+import main  
 
 load_dotenv()
 
-# Initialize Client
+# Initialize Caspian Client
 client = CommClient(api_key=os.getenv("CASPIAN_API_KEY"))
 
 @client.on_message
@@ -26,7 +26,7 @@ if __name__ == "__main__":
         app_token=os.getenv("SLACK_APP_TOKEN")
     )
     
-    # 2. Get Email connection ID (stored in main)
+    # 2. Connect Email and update global ID
     try:
         conn = client.connect_email(username="procure-bot")
         main.EMAIL_CONN_ID = conn.get("id") if isinstance(conn, dict) else conn
@@ -34,11 +34,10 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Email Connection Failed: {e}")
 
-    # 3. Start Listening
+    # 3. Start Listening for new Slack/Email events
     while True:
         try:
             client.listen()
         except Exception as e:
-            print(f"Connection dropped: {e}")
+            print(f"Connection dropped: {e}. Reconnecting...")
             time.sleep(5)
-
