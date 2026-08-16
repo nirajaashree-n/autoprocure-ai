@@ -13,3 +13,4 @@ __pycache__/
 # Database
 *.sqlite3
 *.db
+*.pdf
