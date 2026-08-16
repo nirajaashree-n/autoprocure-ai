@@ -5,7 +5,7 @@ Built with Caspian's dual-channel capabilities, autoprocure-ai uses Google Gemin
 
 ## 🎥 Demo
 
-----google drive link here---- enclose in <> brackets
+<https://drive.google.com/file/d/18LSEiqK96AoOn4kUwTo_JimqEsuMCxHE/view?usp=drive_web>
 
 The demo showcases the complete workflow, from a manager requesting quotations through Slack to vendor communication, AI-powered quote extraction, and procurement status retrieval.
 
