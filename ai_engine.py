@@ -66,16 +66,39 @@ def extract_search_intent(manager_message):
     Extract the search term. Return JSON: {{"search_term": "string", "type": "item|id"}}
     """
     response = client.models.generate_content(
+<<<<<<< HEAD
         model="gemini-3.6-flash",
+=======
+        model="gemini-3.5-flash",
+>>>>>>> 0255006 (Updated code)
         contents=prompt,
         config=types.GenerateContentConfig(response_mime_type="application/json")
     )
     return json.loads(response.text)
 
 def generate_slack_reply(manager_message, raw_data):
+<<<<<<< HEAD
     client = get_client()
     prompt = f"Manager asked: '{manager_message}'. Data: {raw_data}. Summarize concise for Slack."
     response = client.models.generate_content(model="gemini-3.6-flash", contents=prompt)
+=======
+    
+    #Turns DB rows into a nice Slack response + email draft suggestion.
+    
+
+    prompt = f"""
+    Manager asked: "{manager_message}"
+    Data found in DB: {raw_data}
+    
+    Task: 
+    1. Summarize the status.
+    Keep it concise for Slack.
+    """
+    response = client.models.generate_content(
+        model="gemini-3.5-flash",
+        contents=prompt
+    )
+>>>>>>> 0255006 (Updated code)
     return response.text
 
 def draft_vendor_email(vendor_name, item, quantity, manager_instruction):
@@ -83,7 +106,11 @@ def draft_vendor_email(vendor_name, item, quantity, manager_instruction):
     prompt = f"Draft B2B email to {vendor_name} for {quantity} {item}. Note: {manager_instruction}. Return JSON: {{'subject': '...', 'body': '...'}}"
     try:
         response = client.models.generate_content(
+<<<<<<< HEAD
             model="gemini-3.6-flash",
+=======
+            model="gemini-3.5-flash",
+>>>>>>> 0255006 (Updated code)
             contents=prompt,
             config=types.GenerateContentConfig(response_mime_type="application/json")
         )
@@ -98,7 +125,11 @@ def draft_outreach_emails(item, quantity, manager_note, vendor_list):
         prompt = f"Draft outreach to {name} ({email}) for {quantity} {item}. Note: {manager_note}. Return JSON: {{'recipient_email': '{email}', 'vendor_name': '{name}', 'subject': '...', 'body': '...'}}"
         try:
             response = client.models.generate_content(
+<<<<<<< HEAD
                 model="gemini-3.6-flash",
+=======
+                model="gemini-3.5-flash",
+>>>>>>> 0255006 (Updated code)
                 contents=prompt,
                 config=types.GenerateContentConfig(response_mime_type="application/json")
             )
